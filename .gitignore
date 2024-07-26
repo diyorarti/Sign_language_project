@@ -165,3 +165,6 @@ artifacts/*
 
 # Ignore the specific zip file
 Sign recoginition.v1i.yolov5pytorch.zip
+data.yaml
+test/*
+train/*

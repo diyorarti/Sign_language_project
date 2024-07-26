@@ -3,16 +3,20 @@ from signLanguage.logger import logging
 from signLanguage.exception import SignException
 from signLanguage.components.data_ingestion import DataIngestion
 from signLanguage.components.data_validation import DataValidation
+from signLanguage.components.model_trainer import ModelTrainer
 from signLanguage.entity.artifacts_entity import (DataIngestionArtifact,
-                                                  DataValidationArtifact)
+                                                  DataValidationArtifact,
+                                                  ModelTrainingArtifact)
 from signLanguage.entity.config_entity import (DataIngestionConfig,
-                                               DataValidationConfig)
+                                               DataValidationConfig,
+                                               ModelTrainingConfig)
 
 
 class TrainingPipeline:
     def __init__(self):
         self.data_ingestion_config = DataIngestionConfig()
         self.data_validation_config = DataValidationConfig()
+        self.model_training_config = ModelTrainingConfig()
 
     def start_data_ingestion(self) -> DataIngestionArtifact:
         try:
@@ -52,6 +56,18 @@ class TrainingPipeline:
         except Exception as e:
             raise SignException(e, sys) from e
         
+    def start_model_training(self
+                             ) -> ModelTrainingArtifact:
+        try:
+            model_trainer = ModelTrainer(
+                model_training_config=self.model_training_config,
+            )
+            model_training_artifact = model_trainer.initiate_model_trainer()
+            return model_training_artifact
+
+        except Exception as e:
+            raise SignException(e, sys)
+        
         
     def run_pipeline(self) -> None:
         try:
@@ -59,8 +75,12 @@ class TrainingPipeline:
             data_validation_artifact = self.start_data_validation(
                 data_ingestion_artifact=data_ingestion_artifact
             )
+            if data_validation_artifact.validation_status == True:
+                model_trainer_artifact = self.start_model_training()
 
-        
+            else:
+                raise Exception("Your data is not in correct format")
+
         except Exception as e:
             raise SignException(e, sys)
         
